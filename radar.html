@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Binance Radar</title>
+    <title>Binance Radar - SOLUSDT</title>
     <style>
         :root {
             --bg-color: #0d0f14;
@@ -12,6 +12,9 @@
             --text-dim: #888888;
             --accent-green: #00ff88;
             --accent-red: #ff3355;
+            --accent-yellow: #ffcc00;
+            --accent-blue: #3399ff;
+            --accent-purple: #cc66ff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -24,56 +27,199 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             background: var(--card-bg);
             border-radius: 20px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        h1 { font-size: 1rem; color: var(--text-dim); margin-bottom: 20px; font-weight: 600; }
+        h1 { font-size: 0.95rem; color: var(--text-dim); margin-bottom: 15px; font-weight: 600; }
         
-        .price-box { margin: 20px 0; }
-        .price { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; }
+        .price-box { margin: 15px 0; }
+        .price { font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
         .price.up { color: var(--accent-green); }
         .price.down { color: var(--accent-red); }
 
-        .indicators {
+        /* TERMÔMETROS */
+        .thermometers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .thermometer {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thermometer-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .thermometer-bar {
+            height: 6px;
+            background: #2a2d35;
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thermometer-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0%;
+        }
+
+        .thermometer-value {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        .thermometer-trend {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 3px;
+        }
+
+        .thermo-legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.55rem;
+            color: #555;
+            margin-top: 3px;
+        }
+
+        /* BOLLINGER BANDS SECTION */
+        .bb-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .bb-title {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .bb-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 20px;
         }
 
-        .card {
+        .bb-card {
             background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 10px;
         }
-        .card label { display: block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 5px; }
-        .card span { font-weight: bold; font-size: 1.1rem; }
 
+        .bb-card-label {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .bb-card-value {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .bb-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .bb-expand { background: rgba(0,255,136,0.2); color: var(--accent-green); }
+        .bb-contract { background: rgba(255,51,85,0.2); color: var(--accent-red); }
+        .bb-neutral { background: rgba(255,204,0,0.2); color: var(--accent-yellow); }
+
+        .bb-position {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            padding: 5px;
+            border-radius: 6px;
+        }
+        .bb-pos-upper { background: rgba(0,255,136,0.15); color: var(--accent-green); }
+        .bb-pos-middle { background: rgba(51,153,255,0.15); color: var(--accent-blue); }
+        .bb-pos-lower { background: rgba(255,51,85,0.15); color: var(--accent-red); }
+
+        /* CANAL EMA6-BB */
+        .channel-info {
+            background: rgba(204,102,255,0.1);
+            border: 1px solid rgba(204,102,255,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.7rem;
+        }
+
+        .channel-status {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .channel-in { color: var(--accent-green); }
+        .channel-out { color: var(--accent-red); }
+
+        /* ALERTA */
         .alert-box {
             background: #252830;
-            padding: 20px;
+            padding: 18px;
             border-radius: 15px;
-            margin-top: 20px;
+            margin-top: 15px;
             border: 2px solid transparent;
         }
         .alert-box.waiting { border-color: #444; color: var(--text-dim); }
         .alert-box.long { border-color: var(--accent-green); color: var(--accent-green); }
         .alert-box.short { border-color: var(--accent-red); color: var(--accent-red); }
 
-        .levels { margin-top: 15px; font-size: 0.8rem; color: var(--text-dim); }
-        
-        .status { margin-top: 10px; font-size: 0.7rem; color: #555; }
+        /* SUP/RES */
+        .levels { 
+            margin-top: 12px; 
+            font-size: 0.7rem; 
+            color: var(--text-dim);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .level-item {
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 8px;
+        }
+        .level-item span { color: var(--text-main); font-weight: bold; font-size: 0.75rem; }
+
+        .status { margin-top: 10px; font-size: 0.65rem; color: #555; }
         .status.online { color: var(--accent-green); }
+        .status.loading { color: var(--accent-yellow); }
     </style>
 </head>
 <body>
@@ -85,108 +231,535 @@
             <div class="price" id="priceDisplay">0.00</div>
         </div>
 
-        <div class="indicators">
-            <div class="card">
-                <label>SLOPE (1H)</label>
-                <span id="slopeDisplay">--%</span>
+        <!-- TERMÔMETROS -->
+        <div class="thermometers">
+            <div class="thermometer">
+                <div class="thermometer-label">📊 5 MINUTOS</div>
+                <div class="thermometer-bar">
+                    <div class="thermometer-fill" id="thermo5m"></div>
+                </div>
+                <div class="thermometer-value" id="slope5m">0.000%</div>
+                <div class="thermometer-trend" id="trend5m">EMA6: --</div>
+                <div class="thermo-legend">
+                    <span>SHORT</span>
+                    <span>NEUTRO</span>
+                    <span>LONG</span>
+                </div>
             </div>
-            <div class="card">
-                <label>TENDÊNCIA EMA</label>
-                <span id="trendDisplay">--</span>
+
+            <div class="thermometer">
+                <div class="thermometer-label">📈 1 HORA</div>
+                <div class="thermometer-bar">
+                    <div class="thermometer-fill" id="thermo1h"></div>
+                </div>
+                <div class="thermometer-value" id="slope1h">0.000%</div>
+                <div class="thermometer-trend" id="trend1h">EMA6: --</div>
+                <div class="thermo-legend">
+                    <span>SHORT</span>
+                    <span>NEUTRO</span>
+                    <span>LONG</span>
+                </div>
             </div>
         </div>
 
+        <!-- BOLLINGER BANDS -->
+        <div class="bb-section">
+            <div class="bb-title">📊 BANDAS DE BOLLINGER (20, 2)</div>
+            <div class="bb-grid">
+                <div class="bb-card">
+                    <div class="bb-card-label">5 MINUTOS</div>
+                    <div class="bb-card-value" id="bb5mWidth">--</div>
+                    <div class="bb-indicator bb-neutral" id="bb5mStatus">--</div>
+                    <div class="bb-position" id="bb5mPos">Preço: --</div>
+                </div>
+                <div class="bb-card">
+                    <div class="bb-card-label">1 HORA</div>
+                    <div class="bb-card-value" id="bb1hWidth">--</div>
+                    <div class="bb-indicator bb-neutral" id="bb1hStatus">--</div>
+                    <div class="bb-position" id="bb1hPos">Preço: --</div>
+                </div>
+            </div>
+            
+            <!-- CANAL EMA6-BB -->
+            <div class="channel-info">
+                <div class="channel-status" id="channelStatus">📡 CANAL: Carregando dados...</div>
+                <div id="channelDetail">--</div>
+            </div>
+        </div>
+
+        <!-- ALERTA -->
         <div class="alert-box waiting" id="alertBox">
-            <h2 id="alertText">⏳ Aguardando Dados</h2>
+            <h2 id="alertText">⏳ Carregando...</h2>
         </div>
 
-        <div class="levels" id="levelsDisplay">SUP: -- | RES: --</div>
+        <!-- NÍVEIS -->
+        <div class="levels">
+            <div class="level-item">BB Inf: <span id="bbLower">--</span></div>
+            <div class="level-item">SMA20: <span id="bbMiddle">--</span></div>
+            <div class="level-item">BB Sup: <span id="bbUpper">--</span></div>
+        </div>
         
-        <div class="status" id="statusDisplay">🔴 Desconectado</div>
+        <div class="status loading" id="statusDisplay">⏳ Carregando dados históricos...</div>
     </div>
 
     <script>
-        const SYMBOL = 'solusdt';
-        const WS_URL = `wss://fstream.binance.com/ws/${SYMBOL}@kline_1h`;
-        const SLOPE_THRESHOLD = 0.08;
+        const SYMBOL = 'SOLUSDT';
+        const WS_5M = `wss://fstream.binance.com/ws/${SYMBOL.toLowerCase()}@kline_5m`;
+        const WS_1H = `wss://fstream.binance.com/ws/${SYMBOL.toLowerCase()}@kline_1h`;
+        const API_5M = `https://fapi.binance.com/fapi/v1/klines?symbol=${SYMBOL}&interval=5m&limit=50`;
+        const API_1H = `https://fapi.binance.com/fapi/v1/klines?symbol=${SYMBOL}&interval=1h&limit=50`;
         
-        let priceHistory = [];
-        let trend = 'NEUTRO';
-        let lastAlert = '';
+        const SLOPE_THRESHOLD = 0.08;
+        const EMA_PERIOD = 6;
+        const BB_PERIOD = 20;
+        const BB_STD = 2;
+        const MAX_SLOPE_DISPLAY = 0.5;
+        
+        const emaMultiplier = 2 / (EMA_PERIOD + 1);
 
+        // Estado 5M
+        let data5m = {
+            priceHistory: [],
+            ema6: null,
+            trend: 'NEUTRO',
+            slope: 0,
+            currentPrice: 0,
+            bbUpper: 0,
+            bbMiddle: 0,
+            bbLower: 0,
+            bbWidth: 0,
+            bbWidthPrev: 0,
+            bbStatus: 'NEUTRO'
+        };
+
+        // Estado 1H
+        let data1h = {
+            priceHistory: [],
+            ema6: null,
+            trend: 'NEUTRO',
+            slope: 0,
+            currentPrice: 0,
+            bbUpper: 0,
+            bbMiddle: 0,
+            bbLower: 0,
+            bbWidth: 0,
+            bbWidthPrev: 0,
+            bbStatus: 'NEUTRO'
+        };
+
+        // Elementos DOM
         const elPrice = document.getElementById('priceDisplay');
-        const elSlope = document.getElementById('slopeDisplay');
-        const elTrend = document.getElementById('trendDisplay');
         const elAlert = document.getElementById('alertBox');
         const elAlertText = document.getElementById('alertText');
-        const elLevels = document.getElementById('levelsDisplay');
         const elStatus = document.getElementById('statusDisplay');
+        const elBbLower = document.getElementById('bbLower');
+        const elBbMiddle = document.getElementById('bbMiddle');
+        const elBbUpper = document.getElementById('bbUpper');
+        const elChannelStatus = document.getElementById('channelStatus');
+        const elChannelDetail = document.getElementById('channelDetail');
 
-        function updateTrend() {
-            if (priceHistory.length < 6) return;
-            const recent = priceHistory.slice(-6);
-            const avg = recent.reduce((a, b) => a + b, 0) / 6;
-            const lastClose = priceHistory[priceHistory.length - 1];
-            trend = lastClose > avg ? 'ALTA' : 'BAIXA';
-            elTrend.innerText = trend;
-            elTrend.style.color = trend === 'ALTA' ? 'var(--accent-green)' : 'var(--accent-red)';
+        // Elementos 5M
+        const elThermo5m = document.getElementById('thermo5m');
+        const elSlope5m = document.getElementById('slope5m');
+        const elTrend5m = document.getElementById('trend5m');
+        const elBb5mWidth = document.getElementById('bb5mWidth');
+        const elBb5mStatus = document.getElementById('bb5mStatus');
+        const elBb5mPos = document.getElementById('bb5mPos');
+
+        // Elementos 1H
+        const elThermo1h = document.getElementById('thermo1h');
+        const elSlope1h = document.getElementById('slope1h');
+        const elTrend1h = document.getElementById('trend1h');
+        const elBb1hWidth = document.getElementById('bb1hWidth');
+        const elBb1hStatus = document.getElementById('bb1hStatus');
+        const elBb1hPos = document.getElementById('bb1hPos');
+
+        // Calcular EMA6
+        function calculateEMA(data, close) {
+            if (data.ema6 === null) {
+                data.ema6 = close;
+            } else {
+                data.ema6 = (close * emaMultiplier) + (data.ema6 * (1 - emaMultiplier));
+            }
+            return data.ema6;
         }
 
-        function checkSignal(slope) {
-            if (slope < -SLOPE_THRESHOLD && trend === 'BAIXA') {
-                elAlert.className = 'alert-box short';
-                elAlertText.innerText = '📉 SHORT (FORTE)';
-            } else if (slope > SLOPE_THRESHOLD && trend === 'ALTA') {
-                elAlert.className = 'alert-box long';
-                elAlertText.innerText = '🚀 LONG (ALTA)';
-            } else {
-                elAlert.className = 'alert-box waiting';
-                elAlertText.innerText = '⏳ Aguardando Setup';
+        // Calcular SMA
+        function calculateSMA(prices, period) {
+            if (!prices || prices.length < period) return null;
+            const slice = prices.slice(-period);
+            const sum = slice.reduce((acc, val) => acc + val, 0);
+            return sum / period;
+        }
+
+        // Calcular Desvio Padrão
+        function calculateStandardDeviation(prices, period) {
+            if (!prices || prices.length < period) return 0;
+            
+            const slice = prices.slice(-period);
+            const mean = slice.reduce((acc, val) => acc + val, 0) / period;
+            
+            const squaredDiffs = slice.map(price => {
+                const diff = price - mean;
+                return diff * diff;
+            });
+            
+            const variance = squaredDiffs.reduce((acc, val) => acc + val, 0) / period;
+            return Math.sqrt(variance);
+        }
+
+        // Calcular Bandas de Bollinger
+        function calculateBollingerBands(data) {
+            try {
+                if (!data.priceHistory || data.priceHistory.length < BB_PERIOD) {
+                    return false;
+                }
+                
+                const sma = calculateSMA(data.priceHistory, BB_PERIOD);
+                if (!sma || sma === 0) return false;
+                
+                const stdDev = calculateStandardDeviation(data.priceHistory, BB_PERIOD);
+                
+                data.bbMiddle = sma;
+                data.bbUpper = sma + (BB_STD * stdDev);
+                data.bbLower = sma - (BB_STD * stdDev);
+                
+                if (data.bbMiddle > 0) {
+                    data.bbWidth = ((data.bbUpper - data.bbLower) / data.bbMiddle) * 100;
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Erro ao calcular BB:', error);
+                return false;
             }
         }
 
-        function connectWebSocket() {
-            const ws = new WebSocket(WS_URL);
+        // Verificar Expansão/Contração
+        function checkBBExpansion(data) {
+            if (data.bbWidthPrev === 0) {
+                data.bbStatus = 'NEUTRO';
+            } else if (data.bbWidth > data.bbWidthPrev * 1.05) {
+                data.bbStatus = 'EXPANDINDO';
+            } else if (data.bbWidth < data.bbWidthPrev * 0.95) {
+                data.bbStatus = 'CONTRAINDO';
+            } else {
+                data.bbStatus = 'NEUTRO';
+            }
+            data.bbWidthPrev = data.bbWidth;
+        }
+
+        // Verificar Posição do Preço
+        function checkPricePosition(data) {
+            const price = data.currentPrice;
+            if (!data.bbUpper || !data.bbLower || !data.bbMiddle) return 'AGUARDANDO';
+            
+            if (price >= data.bbUpper) return 'ACIMA_BB_SUPERIOR';
+            if (price <= data.bbLower) return 'ABAIXO_BB_INFERIOR';
+            if (price >= data.bbMiddle) return 'ENTRE_MEIO_SUPERIOR';
+            return 'ENTRE_INFERIOR_MEIO';
+        }
+
+        // Verificar Canal EMA6-BB
+        function checkChannel(data, timeframe) {
+            const price = data.currentPrice;
+            const ema6 = data.ema6;
+            const bbUpper = data.bbUpper;
+            const bbLower = data.bbLower;
+            
+            if (!ema6 || !bbUpper || !bbLower || ema6 === 0) {
+                return { inChannel: false, text: 'Aguardando dados' };
+            }
+            
+            const minUpper = Math.min(ema6, bbUpper);
+            const maxUpper = Math.max(ema6, bbUpper);
+            const betweenEmaAndUpper = price >= minUpper && price <= maxUpper;
+            
+            const minLower = Math.min(ema6, bbLower);
+            const maxLower = Math.max(ema6, bbLower);
+            const betweenEmaAndLower = price >= minLower && price <= maxLower;
+            
+            if (betweenEmaAndUpper) {
+                return { inChannel: true, text: `✅ Canal EMA6-BB Sup (${timeframe})`, type: 'bullish' };
+            } else if (betweenEmaAndLower) {
+                return { inChannel: true, text: `✅ Canal EMA6-BB Inf (${timeframe})`, type: 'bearish' };
+            } else {
+                return { inChannel: false, text: `❌ Fora do canal (${timeframe})`, type: 'neutral' };
+            }
+        }
+
+        // Atualizar Tendência
+        function updateTrend(data, currentPrice) {
+            if (data.priceHistory.length < EMA_PERIOD) return;
+            const currentEMA = calculateEMA(data, currentPrice);
+            data.trend = currentPrice > currentEMA ? 'ALTA' : 'BAIXA';
+        }
+
+        // Calcular Slope
+        function calculateSlope(current, open) {
+            if (!open || open === 0) return 0;
+            return ((current - open) / open) * 100;
+        }
+
+        // Atualizar Termômetro
+        function updateThermometer(fillEl, valueEl, trendEl, slope, trend) {
+            valueEl.innerText = `${slope > 0 ? '+' : ''}${slope.toFixed(3)}%`;
+            
+            if (slope > 0.1) valueEl.style.color = 'var(--accent-green)';
+            else if (slope < -0.1) valueEl.style.color = 'var(--accent-red)';
+            else valueEl.style.color = 'var(--text-main)';
+
+            trendEl.innerText = `EMA6: ${trend}`;
+            trendEl.style.color = trend === 'ALTA' ? 'var(--accent-green)' : 
+                                  trend === 'BAIXA' ? 'var(--accent-red)' : 'var(--text-dim)';
+
+            let widthPercent = Math.min(Math.abs(slope) / MAX_SLOPE_DISPLAY, 1) * 50;
+            let color = '#555';
+            
+            if (slope > SLOPE_THRESHOLD && trend === 'ALTA') color = 'var(--accent-green)';
+            else if (slope < -SLOPE_THRESHOLD && trend === 'BAIXA') color = 'var(--accent-red)';
+            else if (slope > 0) color = 'var(--accent-yellow)';
+            else if (slope < 0) color = '#ff6666';
+
+            fillEl.style.width = `${widthPercent}%`;
+            fillEl.style.background = color;
+            fillEl.style.left = slope >= 0 ? '50%' : `${50 - widthPercent}%`;
+        }
+
+        // Atualizar Bollinger Bands UI
+        function updateBBUI(data, widthEl, statusEl, posEl) {
+            if (!data.bbMiddle || data.bbMiddle === 0) {
+                widthEl.innerText = 'Aguardando...';
+                statusEl.innerText = '--';
+                statusEl.className = 'bb-indicator bb-neutral';
+                posEl.innerText = 'Preço: --';
+                posEl.className = 'bb-position';
+                return;
+            }
+
+            widthEl.innerText = `${data.bbWidth.toFixed(2)}%`;
+            
+            statusEl.className = 'bb-indicator';
+            if (data.bbStatus === 'EXPANDINDO') {
+                statusEl.classList.add('bb-expand');
+                statusEl.innerText = '📈 Expandindo';
+            } else if (data.bbStatus === 'CONTRAINDO') {
+                statusEl.classList.add('bb-contract');
+                statusEl.innerText = '📉 Contraindo';
+            } else {
+                statusEl.classList.add('bb-neutral');
+                statusEl.innerText = '➡️ Neutro';
+            }
+
+            const position = checkPricePosition(data);
+            posEl.className = 'bb-position';
+            switch(position) {
+                case 'ACIMA_BB_SUPERIOR':
+                    posEl.classList.add('bb-pos-upper');
+                    posEl.innerText = '🔴 Acima BB Superior';
+                    break;
+                case 'ABAIXO_BB_INFERIOR':
+                    posEl.classList.add('bb-pos-lower');
+                    posEl.innerText = '🟢 Abaixo BB Inferior';
+                    break;
+                case 'ENTRE_MEIO_SUPERIOR':
+                    posEl.classList.add('bb-pos-middle');
+                    posEl.innerText = '🔵 Entre SMA20 e BB Sup';
+                    break;
+                case 'ENTRE_INFERIOR_MEIO':
+                    posEl.classList.add('bb-pos-lower');
+                    posEl.innerText = '🟠 Entre BB Inf e SMA20';
+                    break;
+                default:
+                    posEl.innerText = '⏳ Aguardando dados';
+            }
+        }
+
+        // Verificar Sinal Principal
+        function checkSignal() {
+            const slope = data1h.slope;
+            const trend = data1h.trend;
+            const price = data1h.currentPrice;
+
+            elPrice.innerText = price.toFixed(2);
+            elPrice.className = `price ${slope >= 0 ? 'up' : 'down'}`;
+
+            if (data1h.bbMiddle > 0) {
+                elBbLower.innerText = data1h.bbLower.toFixed(2);
+                elBbMiddle.innerText = data1h.bbMiddle.toFixed(2);
+                elBbUpper.innerText = data1h.bbUpper.toFixed(2);
+            }
+
+            const channel5m = checkChannel(data5m, '5m');
+            const channel1h = checkChannel(data1h, '1h');
+            
+            if (channel1h.inChannel) {
+                elChannelStatus.className = 'channel-status channel-in';
+                elChannelStatus.innerText = '📡 CANAL: PREÇO NO CANAL';
+                elChannelDetail.innerText = `${channel1h.text} | ${channel5m.text}`;
+            } else {
+                elChannelStatus.className = 'channel-status channel-out';
+                elChannelStatus.innerText = '📡 CANAL: FORA DO CANAL';
+                elChannelDetail.innerText = `${channel1h.text} | ${channel5m.text}`;
+            }
+
+            let alertText = '⏳ Aguardando Setup';
+            let alertClass = 'waiting';
+            
+            if (slope < -SLOPE_THRESHOLD && trend === 'BAIXA') {
+                if (data1h.bbStatus === 'EXPANDINDO' && price <= data1h.bbLower) {
+                    alertText = '📉 SHORT CONFIRMADO (BB + EMA)';
+                    alertClass = 'short';
+                } else {
+                    alertText = '📉 SHORT (FORTE)';
+                    alertClass = 'short';
+                }
+            } else if (slope > SLOPE_THRESHOLD && trend === 'ALTA') {
+                if (data1h.bbStatus === 'EXPANDINDO' && price >= data1h.bbUpper) {
+                    alertText = '🚀 LONG CONFIRMADO (BB + EMA)';
+                    alertClass = 'long';
+                } else {
+                    alertText = '🚀 LONG (ALTA)';
+                    alertClass = 'long';
+                }
+            }
+
+            elAlert.className = `alert-box ${alertClass}`;
+            elAlertText.innerText = alertText;
+        }
+
+        // BUSCAR DADOS HISTÓRICOS DA API REST
+        async function fetchHistoricalData(url, data, timeframe) {
+            try {
+                console.log(`Buscando dados históricos ${timeframe}...`);
+                const response = await fetch(url);
+                const klines = await response.json();
+                
+                // Extrair preços de fechamento
+                data.priceHistory = klines.map(k => parseFloat(k[4]));
+                
+                console.log(`${timeframe}: ${data.priceHistory.length} candles carregados`);
+                
+                // Calcular EMA6 para todos os candles históricos
+                data.priceHistory.forEach((close, index) => {
+                    if (index === 0) {
+                        data.ema6 = close;
+                    } else {
+                        data.ema6 = (close * emaMultiplier) + (data.ema6 * (1 - emaMultiplier));
+                    }
+                    
+                    // Atualizar trend
+                    data.trend = close > data.ema6 ? 'ALTA' : 'BAIXA';
+                });
+                
+                // Calcular Bandas de Bollinger
+                const bbCalculated = calculateBollingerBands(data);
+                if (bbCalculated) {
+                    checkBBExpansion(data);
+                    console.log(`${timeframe}: BB calculado - Upper: ${data.bbUpper.toFixed(2)}, Middle: ${data.bbMiddle.toFixed(2)}, Lower: ${data.bbLower.toFixed(2)}`);
+                }
+                
+                // Preço atual
+                data.currentPrice = data.priceHistory[data.priceHistory.length - 1];
+                
+                return true;
+                
+            } catch (error) {
+                console.error(`Erro ao buscar dados ${timeframe}:`, error);
+                return false;
+            }
+        }
+
+        // Conectar WebSocket
+        function connectWebSocket(url, timeframe) {
+            const ws = new WebSocket(url);
+            const data = timeframe === '5m' ? data5m : data1h;
 
             ws.onopen = () => {
-                elStatus.innerText = '🟢 Online';
-                elStatus.className = 'status online';
+                console.log(`${timeframe} WebSocket conectado`);
             };
 
             ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                const k = data.k;
-                
-                if (k.x) {
-                    priceHistory.push(parseFloat(k.c));
-                    if (priceHistory.length > 50) priceHistory.shift();
-                    updateTrend();
+                try {
+                    const msg = JSON.parse(event.data);
+                    const k = msg.k;
+                    
+                    const closePrice = parseFloat(k.c);
+                    const openPrice = parseFloat(k.o);
+                    const slope = calculateSlope(closePrice, openPrice);
+
+                    data.currentPrice = closePrice;
+                    data.slope = slope;
+
+                    if (k.x) {
+                        data.priceHistory.push(closePrice);
+                        if (data.priceHistory.length > 50) {
+                            data.priceHistory.shift();
+                        }
+                        
+                        updateTrend(data, closePrice);
+                        calculateBollingerBands(data);
+                        checkBBExpansion(data);
+                    }
+
+                    if (timeframe === '5m') {
+                        updateThermometer(elThermo5m, elSlope5m, elTrend5m, slope, data.trend);
+                        updateBBUI(data, elBb5mWidth, elBb5mStatus, elBb5mPos);
+                    } else {
+                        updateThermometer(elThermo1h, elSlope1h, elTrend1h, slope, data.trend);
+                        updateBBUI(data, elBb1hWidth, elBb1hStatus, elBb1hPos);
+                        checkSignal();
+                    }
+                } catch (error) {
+                    console.error(`Erro ao processar mensagem ${timeframe}:`, error);
                 }
-
-                const currentPrice = parseFloat(k.c);
-                const openPrice = parseFloat(k.o);
-                const slope = ((currentPrice - openPrice) / openPrice) * 100;
-
-                elPrice.innerText = currentPrice.toFixed(2);
-                elPrice.className = `price ${slope >= 0 ? 'up' : 'down'}`;
-                
-                elSlope.innerText = `${slope > 0 ? '+' : ''}${slope.toFixed(3)}%`;
-                elSlope.style.color = slope >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-
-                elLevels.innerText = `SUP: ${(currentPrice * 0.992).toFixed(2)} | RES: ${(currentPrice * 1.008).toFixed(2)}`;
-
-                checkSignal(slope);
             };
 
             ws.onclose = () => {
-                elStatus.innerText = '🔴 Reconectando...';
-                elStatus.className = 'status';
-                setTimeout(connectWebSocket, 5000);
+                setTimeout(() => connectWebSocket(url, timeframe), 5000);
             };
         }
 
+        // INICIALIZAÇÃO PRINCIPAL
+        async function initializeApp() {
+            console.log('Iniciando Binance Radar...');
+            elStatus.innerText = '⏳ Carregando dados históricos...';
+            elStatus.className = 'status loading';
+            
+            // Buscar dados históricos de ambos timeframes
+            const [success5m, success1h] = await Promise.all([
+                fetchHistoricalData(API_5M, data5m, '5m'),
+                fetchHistoricalData(API_1H, data1h, '1h')
+            ]);
+            
+            if (success5m && success1h) {
+                console.log('Dados históricos carregados com sucesso!');
+                elStatus.innerText = '🟢 Online - Dados em tempo real';
+                elStatus.className = 'status online';
+                
+                // Atualizar UI inicial
+                updateThermometer(elThermo5m, elSlope5m, elTrend5m, data5m.slope, data5m.trend);
+                updateBBUI(data5m, elBb5mWidth, elBb5mStatus, elBb5mPos);
+                
+                updateThermometer(elThermo1h, elSlope1h, elTrend1h, data1h.slope, data1h.trend);
+                updateBBUI(data1h, elBb1hWidth, elBb1hStatus, elBb1hPos);
+                
+                checkSignal();
+                
+                // Conectar WebSockets para tempo real
+                connectWebSocket(WS_5M, '5m');
+                connectWebSocket(WS_1H, '1h');
+            } else {
+                elStatus.innerText = '❌ Erro ao carregar dados';
+                elStatus.className = 'status';
+                elAlertText.innerText = '⚠️ Erro ao carregar dados';
+            }
+        }
+
+        // Iniciar aplicação
         window.onload = () => {
-            connectWebSocket();
+            initializeApp();
         };
     </script>
 </body>
