@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Binance Radar Pro</title>
+    <style>
+        :root {
+            --bg-color: #0d0f14;
+            --card-bg: #1a1d24;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --accent-green: #00ff88;
+            --accent-red: #ff3355;
+            --accent-blue: #3399ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        h1 { font-size: 1.2rem; color: var(--text-dim); margin-bottom: 20px; font-weight: 600; }
+        
+        .price-box { margin: 20px 0; }
+        .price { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; }
+        .price.up { color: var(--accent-green); }
+        .price.down { color: var(--accent-red); }
+
+        .indicators {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        .card label { display: block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 5px; }
+        .card span { font-weight: bold; font-size: 1.1rem; }
+
+        .alert-box {
+            background: #252830;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .alert-box.waiting { border-color: #444; color: var(--text-dim); }
+        .alert-box.long { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,136,0.1); }
+        .alert-box.short { border-color: var(--accent-red); color: var(--accent-red); background: rgba(255,51,85,0.1); }
+
+        .status-dot {
+            height: 10px; width: 10px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-dot.online { background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+
+        button {
+            margin-top: 20px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        button:active { transform: scale(0.98); }
+
+        .levels { margin-top: 15px; font-size: 0.8rem; color: var(--text-dim); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><span class="status-dot" id="statusDot"></span>SOLUSDT • BINANCE</h1>
+        
+        <div class="price-box">
+            <div class="price" id="priceDisplay">0.00</div>
+        </div>
+
+        <div class="indicators">
+            <div class="card">
+                <label>SLOPE (1H)</label>
+                <span id="slopeDisplay">--%</span>
+            </div>
+            <div class="card">
+                <label>TENDÊNCIA</label>
+                <span id="trendDisplay">--</span>
+            </div>
+        </div>
+
+        <div class="alert-box waiting" id="alertBox">
+            <h2 id="alertText">⏳ Aguardando Dados</h2>
+        </div>
+
+        <div class="levels" id="levelsDisplay">SUP: -- | RES: --</div>
+
+        <button onclick="requestNotificationPermission()">🔔 Ativar Alertas Sonoros</button>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÕES ---
+        const SYMBOL = 'solusdt';
+        const WS_URL = `wss://fstream.binance.com/ws/${SYMBOL}@kline_1h`;
+        const SLOPE_THRESHOLD = 0.08; // 0.08% de movimento para sinal
+        
+        // --- ESTADO ---
+        let currentPrice = 0;
+        let openPrice = 0;
+        let trend = 'NEUTRO';
+        let priceHistory = []; // Para calcular tendência
+        let lastAlert = '';
+
+        // --- ELEMENTOS DOM ---
+        const elPrice = document.getElementById('priceDisplay');
+        const elSlope = document.getElementById('slopeDisplay');
+        const elTrend = document.getElementById('trendDisplay');
+        const elAlert = document.getElementById('alertBox');
+        const elAlertText = document.getElementById('alertText');
+        const elStatus = document.getElementById('statusDot');
+        const elLevels = document.getElementById('levelsDisplay');
+
+        // --- NOTIFICAÇÕES ---
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("Seu navegador não suporta notificações");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification("Binance Radar", { body: "Alertas ativados com sucesso!" });
+                    document.querySelector('button').innerText = "✅ Alertas Ativados";
+                    document.querySelector('button').disabled = true;
+                }
+            });
+        }
+
+        function sendNotification(title, body, type) {
+            if (Notification.permission === "granted") {
+                new Notification(title, {
+                    body: body,
+                    icon: type === 'LONG' ? 'https://cryptologos.cc/logos/solana-sol-logo.png' : 'https://cryptologos.cc/logos/tether-usdt-logo.png',
+                    tag: 'binance-radar' // Evita duplicatas
+                });
+                // Vibração no celular (se suportado)
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        // --- LÓGICA DE TRADING ---
+        function updateTrend() {
+            if (priceHistory.length < 6) return;
+            // Média simples dos últimos 6 fechamentos (EMA simplificada)
+            const recent = priceHistory.slice(-6);
+            const avg = recent.reduce((a, b) => a + b, 0) / 6;
+            const lastClose = priceHistory[priceHistory.length - 1];
+            
+            trend = lastClose > avg ? 'ALTA' : 'BAIXA';
+            elTrend.innerText = trend;
+            elTrend.style.color = trend === 'ALTA' ? 'var(--accent-green)' : 'var(--accent-red)';
+        }
+
+        function checkSignal(price, slope) {
+            let signal = 'WAIT';
+            let text = '⏳ Aguardando Setup';
+            let className = 'waiting';
+
+            if (slope < -SLOPE_THRESHOLD && trend === 'BAIXA') {
+                signal = 'SHORT';
+                text = '📉 SHORT (FORTE)';
+                className = 'short';
+            } else if (slope > SLOPE_THRESHOLD && trend === 'ALTA') {
+                signal = 'LONG';
+                text = '🚀 LONG (ALTA)';
+                className = 'long';
+            }
+
+            // Atualiza UI
+            elAlert.className = `alert-box ${className}`;
+            elAlertText.innerText = text;
+
+            // Dispara Notificação se mudou o estado
+            if (signal !== 'WAIT' && signal !== lastAlert) {
+                sendNotification("SINAL DETECTADO!", `${text} em ${SYMBOL.toUpperCase()}`, signal);
+                lastAlert = signal;
+            } else if (signal === 'WAIT') {
+                lastAlert = ''; // Reseta para permitir novo alerta
+            }
+        }
+
+        // --- WEBSOCKET ---
+        function connectWebSocket() {
+            const ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                elStatus.classList.add('online');
+                console.log("Conectado à Binance");
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const k = data.k;
+                
+                if (k.x) { // Candle fechado
+                    priceHistory.push(parseFloat(k.c));
+                    if (priceHistory.length > 50) priceHistory.shift(); // Manter memória leve
+                    updateTrend();
+                }
+
+                currentPrice = parseFloat(k.c);
+                openPrice = parseFloat(k.o);
+                
+                // Cálculo do Slope
+                const slope = ((currentPrice - openPrice) / openPrice) * 100;
+
+                // Atualiza UI
+                elPrice.innerText = currentPrice.toFixed(2);
+                elPrice.className = `price ${slope >= 0 ? 'up' : 'down'}`;
+                
+                elSlope.innerText = `${slope > 0 ? '+' : ''}${slope.toFixed(3)}%`;
+                elSlope.style.color = slope >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+
+                elLevels.innerText = `SUP: ${(currentPrice * 0.992).toFixed(2)} | RES: ${(currentPrice * 1.008).toFixed(2)}`;
+
+                checkSignal(currentPrice, slope);
+            };
+
+            ws.onclose = () => {
+                elStatus.classList.remove('online');
+                console.log("Desconectado. Reconectando em 5s...");
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        // --- INICIALIZAÇÃO ---
+        window.onload = () => {
+            connectWebSocket();
+        };
+    </script>
+</body>
+</html>
